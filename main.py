@@ -3,8 +3,6 @@ import asyncio
 from graphdata import GraphData
 from graphcrawl import GraphCrawler
 from detections import DetectionFactory
-from datetime import datetime
-from pathlib import Path
 
 
 def main():
@@ -47,8 +45,14 @@ def main():
         graph_data = GraphData(args.db_path)
 
         if args.collect:
-            asyncio.run(refresh(graph_data, debug=args.debug_count))
-            return
+             asyncio.run(refresh(graph_data, args.debug_count))
+             return
+        elif graph_data.fresh() == False:
+            prompt = input(f"Cache database missing or older than 7 days. Perform refresh (y/n): ").strip().lower()
+            if prompt == 'y':
+                 asyncio.run(refresh(graph_data, args.debug_count))
+                 return
+
 
         detections = DetectionFactory(
             graph_data, 
@@ -63,23 +67,10 @@ def main():
     except Exception as e:
         print(f"[-] Fatal Error (see errors.log): {str(e)}")
                 
-    
 
-
-
-
-async def refresh(graph_data, refresh_days=7, debug=0):
-    if Path(graph_data.db_path).exists():
-        mtime = datetime.fromtimestamp(Path(graph_data.db_path).stat().st_mtime)
-        age_days = (datetime.now() - mtime).days
-        if age_days >= refresh_days:
-            prompt = input(f"Databasae older than {refresh_days} days. Perform refresh (y/n): ").strip().lower()
-            if prompt != 'y':
-                return
-        else:
-            return   
-    async with GraphCrawler(graph_data, debug=debug) as crawler:
-         await crawler.fetch()
+async def refresh(graph_data, debug=0):
+        async with GraphCrawler(graph_data, debug=debug) as crawler:
+            await crawler.fetch()
 
 
 if __name__ == "__main__":
