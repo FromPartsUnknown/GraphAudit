@@ -1,0 +1,23 @@
+[project]
+name = "AppAudit"
+version = "0.0.1"
+description = "A tool to audit m365 Service Principals."
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.7"
+dependencies = [
+    "pandas",
+    "duckdb",
+    "msgraph-sdk",
+    "rich",
+    "PyYAML",
+    "jmespath"
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Operating System :: OS Independent",
+]
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
