@@ -5,6 +5,7 @@ import sqlite3
 import pandas as pd
 from log import log_init
 import logging
+from datetime import datetime
 
 from kiota_serialization_json.json_serialization_writer_factory import JsonSerializationWriterFactory
 from kiota_abstractions.serialization import Parsable
@@ -31,6 +32,15 @@ class GraphData():
         return self._db_path
    
 
+    def fresh(self, refresh_days=7):
+        if Path(self.db_path).exists == True:
+            mtime = datetime.fromtimestamp(Path(self.db_path).stat().st_mtime)
+            age_days = (datetime.now() - mtime).days
+            if age_days < refresh_days:
+                return True
+        return False
+
+
     def _load_from_disk(self, db_path):
         tables = [
             'service_principals', 
@@ -44,7 +54,7 @@ class GraphData():
 
         try:
             if not Path(db_path).exists():
-                self._logger.info(f"[*] {db_path} not found")
+                self._logger.info(f"[*] No databse found: {db_path}")
                 return
             
             self._logger.info(f"[*] Opening: {db_path}")
