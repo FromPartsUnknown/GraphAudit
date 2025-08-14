@@ -27,6 +27,14 @@ def main():
         default=False,
         help="Peform MS Graph collection"
     )
+
+    parser.add_argument(
+        "--debug-count",
+        type=int,
+        default=0,
+        help="Number of ServicePrincipal enteries to fetch"
+    )
+
     parser.add_argument(
         "--output-file", 
         type=str,
@@ -34,13 +42,12 @@ def main():
     )
 
     try:
-
         args = parser.parse_args()
 
         graph_data = GraphData(args.db_path)
 
         if args.collect:
-            asyncio.run(refresh(graph_data))
+            asyncio.run(refresh(graph_data, debug=args.debug_count))
             return
 
         detections = DetectionFactory(
@@ -71,7 +78,7 @@ async def refresh(graph_data, refresh_days=7, debug=0):
                 return
         else:
             return   
-    async with GraphCrawler(graph_data, debug) as crawler:
+    async with GraphCrawler(graph_data, debug=debug) as crawler:
          await crawler.fetch()
 
 

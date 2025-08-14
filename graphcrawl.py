@@ -12,7 +12,6 @@ from msgraph.generated.service_principals.item.app_role_assigned_to.app_role_ass
 from msgraph.generated.service_principals.item.oauth2_permission_grants.oauth2_permission_grants_request_builder import Oauth2PermissionGrantsRequestBuilder
 from msgraph.generated.service_principals.item.service_principal_item_request_builder import ServicePrincipalItemRequestBuilder
 from msgraph.generated.service_principals.item.member_of.member_of_request_builder import MemberOfRequestBuilder
-#from typing import List, Dict, Any
 import logging
 from log import log_init
 import pandas as pd
@@ -57,40 +56,47 @@ class GraphCrawler:
                 self._logger.error(f"Error closing HTTP client: {e}")
 
 
-    async def _authenticate(self, client_id: str = CLIENT_ID):
+    async def _authenticate(self, client_id=CLIENT_ID, use_cache=False):
         try:
-            cache_path = os.path.expanduser(".token_cache")
-            auth_record_path = os.path.expanduser(".auth_record_cache")
-        
-            cache_options = TokenCachePersistenceOptions(
-                name=cache_path, 
-                allow_unencrypted_storage=True
-            )
-
-            if os.path.exists(auth_record_path):
-                with open(auth_record_path, 'r') as fp:
-                    record_json = fp.read()
-                    record = AuthenticationRecord.deserialize(record_json)
-
-                credential = InteractiveBrowserCredential(
-                    client_id=CLIENT_ID,
-                    cache_persistence_options=cache_options, 
-                    authentication_record=record
+            credential = None
+            
+            if use_cache:
+                # Caching enabled
+                cache_path = os.path.expanduser(".token_cache")
+                auth_record_path = os.path.expanduser(".auth_record_cache")
+            
+                cache_options = TokenCachePersistenceOptions(
+                    name=cache_path, 
+                    allow_unencrypted_storage=True
                 )
 
+                if os.path.exists(auth_record_path):
+                    with open(auth_record_path, 'r') as fp:
+                        record_json = fp.read()
+                        record = AuthenticationRecord.deserialize(record_json)
+
+                    credential = InteractiveBrowserCredential(
+                        client_id=client_id,
+                        cache_persistence_options=cache_options, 
+                        authentication_record=record
+                    )
+                else:
+                    credential = InteractiveBrowserCredential(
+                        client_id=client_id,
+                        cache_persistence_options=cache_options
+                    )
+
+                    record = await asyncio.get_event_loop().run_in_executor(
+                        None, credential.authenticate
+                    )
+                    record_json = record.serialize()
+                    with open(auth_record_path, 'w') as auth_out:
+                        auth_out.write(record_json)
             else:
+                # No caching - create fresh credential each time
                 credential = InteractiveBrowserCredential(
-                    client_id=CLIENT_ID,
-                    cache_persistence_options=cache_options
+                    client_id=client_id
                 )
-
-                record = await asyncio.get_event_loop().run_in_executor(
-                    None, credential.authenticate
-                )
-                record_json = record.serialize()
-                with open(auth_record_path, 'w') as auth_out:
-                    auth_out.write(record_json)
-
 
             self._graph_client = GraphServiceClient(
                 credentials=credential, 
