@@ -1,0 +1,98 @@
+service_principal:
+  TITLE: Service Principal
+  id: Service Principal ID
+  displayName: Display Name
+  verifiedPublisher: Publisher
+  servicePrincipalType: Type
+  #replyUrls: Reply URLs
+  servicePrincipalNames: SPNs
+  appOwnerOrganizationId: Home Tenant
+  notificationEmailAddresses: Notification Email
+  homepage: Home Page
+  appRoleImports[]:
+    TITLE: Service Principal AppRoleAssignedTo
+    COMMENT: "This Service Principal has permissions to access the resources listed above. If an attacker authenticates using client credential flow, they will gain these permissions.\n\nRecommended actions:\n1. Ensure this Service Principal does not have extensive permissions to sensitive resources such as Microsoft Graph.\n2. Review the assigned permissions for any anomalies or unexpected entries. Cross-reference these with the roles listed under the 'Application Required Access' section, which serves as a baseline template for expected permissions."
+    scope: Scope
+    resourceId: Resource ID
+    resourceDisplayName: Resource Name
+  passwordCredentials[]:
+    TITLE: Service Principal Passwords
+    COMMENT: "Password credentials are configured for this Service Principal. If compromised, an attacker could authenticate as this application and escalate privileges to those listed in the AppRoleAssignedTo or Directory Roles sections. Recommended actions:\n\n1. Search Sharepoint, company Wiki, and Source Code repositories for any references to the credential identifiers or hints listed above.\n2. Verify that any found credentials are secured and inaccessible to unauthorised users.\n3. Review the listed credentials for any unexpected entries, as unknown credentials could indicate a potential backdoor."
+    displayName: "Display Name"
+    keyId: "Key ID"
+    customKeyIdentifier: "Custom ID"
+    hint: "Hint"
+    startDateTime: "Start Time"
+    endDateTime: "End Time"
+  keyCredentials[]:
+    TITLE: Service Principal Keys
+    COMMENT: "Key credentials are configured for this Service Principal. If compromised, an attacker could authenticate as this application and escalate privileges to those listed in the AppRoleAssignedTo or Directory Roles sections. Recommended actions:\n\n1. Search Sharepoint, company Wiki, and Source Code repositories for any references to the credential identifiers listed above.\n2. Verify that any found credentials are secured and inaccessible to unauthorised users.\n3. Review the listed credentials for any unexpected entries, as unknown credentials could indicate a potential backdoor."
+    displayName: "Display Name"
+    keyId: "Key ID"
+    customKeyIdentifier: "Custom ID"
+    usage: "Usage"
+    startDateTime: "Start Time"
+    endDateTime: "End Time"
+  member_of[]:
+    TITLE: Directory Roles
+    COMMENT: The Service Principal (SP) has been assigned an Entra ID Directory Role, granting it the permissions associated with that role. This can include elevated privileges to resources such as Microsoft Graph.
+    id: "ID"
+    _odata_type: "Type"
+    displayName: "DisplayName"
+    description: "Description"
+
+  application:
+    TITLE: "Application Info"
+    COMMENT: enableAccessTokenIssuance specifies whether Azure AD can issue access tokens targeted (scoped) to this application. Redirect URIs define the endpoint where the application receives the authorization code during confidential client authorization code flow.
+    displayName: "Display Name"
+    appId: "Application ID"
+    publicClient: 
+      Title: "Public Client"
+      EXPAND: Yes
+      redirectUris: Redirect URIs
+    publisherDomain: "Home Tenant"
+    createdDateTime: "Birth Date"
+    description: "Description"
+    notes: "Notes"
+    redirectUris: "Redirect URI"
+    identifierUris: Identifier URIs
+    web:
+      TITLE: Web Info
+      EXPAND: Yes
+      homePageUrl: "Home Page"
+      implicitGrantSettings: "Grant Settings"
+      redirectUris: Redirect URIs
+    servicePrincipalLockConfiguration: "SP Lock"
+    isFallbackPublicClient: Fallback PublicClient
+    defaultRedirectUri: Default RedirectURI
+    email: "Email"
+    tags: "Tags"
+    passwordCredentials[]:
+      TITLE: Application Passwords
+      COMMENT: "Password credentials are configured for this Application. If compromised, an attacker could authenticate as this application and escalate privileges to those listed in the AppRoleAssignedTo or Directory Roles sections. Recommended actions:\n\n1. Search Sharepoint, company Wiki, and Source Code repositories for any references to the credential identifiers or hints listed above.\n2. Verify that any found credentials are secured and inaccessible to unauthorised users.\n3. Review the listed credentials for any unexpected entries, as unknown credentials could indicate a potential backdoor."
+      displayName: "Display Name"
+      keyId: "Key ID"
+      customKeyIdentifier: "Custom ID"
+      hint: "Hint"
+      startDateTime: "Start Time"
+      endDateTime: "End Time"
+    keyCredentials[]:
+      TITLE: Application Keys
+      COMMENT: "Key credentials are configured for this Application. If compromised, an attacker could authenticate as this application and escalate privileges to those listed in the AppRoleAssignedTo or Directory Roles sections. Recommended actions:\n\n1. Search Sharepoint, company Wiki, and Source Code repositories for any references to the credential identifiers listed above.\n2. Verify that any found credentials are secured and inaccessible to unauthorised users. \n3. Review the listed credentials for any unexpected entries, as unknown credentials could indicate a potential backdoor."
+      displayName: "Display Name"
+      keyId: "Key ID"
+      customKeyIdentifier: "Custom ID"
+      usage: "Usage"
+      startDateTime: "Start Time"
+      endDateTime: "End Time"
+    requiredResourceAccess[]:
+      TITLE: Application Required Access
+      resourceDisplayName: Resource Name
+      resourceAccess[]:
+        EXPAND: Yes
+        TITLE: "Resource Access:"
+        id: ID
+        type: Type
+        scope: Scope
+        #description: Description
+        

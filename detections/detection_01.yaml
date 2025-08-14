@@ -1,0 +1,42 @@
+name: Detection 01
+description:  |
+  Find Service Principals (SPs) that have a role assignment to the MS Graph Resource.
+  The SPs must be of type ‘Application’, be enabled, and have at least one credential 
+  (password or key) configured to support client credential authentication flow.
+
+query: |
+  SELECT DISTINCT sp_id
+  FROM (
+      -- Match via app_role assignments or assigned_to
+      SELECT a.principalId AS sp_id
+      FROM (
+          SELECT principalId, resourceDisplayName
+          FROM app_role_assignments
+          UNION ALL
+          SELECT principalId, resourceDisplayName
+          FROM app_role_assigned_to
+      ) a
+      INNER JOIN service_principals sp ON lower(sp.id) = lower(a.principalId)
+      WHERE 
+          lower(a.resourceDisplayName) = lower('Microsoft Graph') AND
+          sp.servicePrincipalType = 'Application' AND
+          sp.accountEnabled = 1 AND (
+              json_array_length(sp.passwordCredentials) > 0 OR
+              json_array_length(sp.keyCredentials) > 0
+          )
+  )
+  
+output:
+  - type: table
+    title: "Service Principal Assigned Permissions for Microsoft Graph"
+    columns:
+      - 
+        - data_view: "service_principal"
+        - data_view: "service_principal.appRoleImports[]"
+        - data_view: "service_principal.passwordCredentials[]"
+        - data_view: "service_principal.keyCredentials[]"
+      - 
+        - data_view: "service_principal.application"
+        - data_view: "service_principal.application.requiredResourceAccess[]"
+        - data_view: "service_principal.application.passwordCredentials[]"
+        - data_view: "service_principal.application.keyCredentials[]"
