@@ -33,7 +33,7 @@ class GraphData():
    
 
     def fresh(self, refresh_days=7):
-        if Path(self.db_path).exists == True:
+        if Path(self.db_path).exists():
             mtime = datetime.fromtimestamp(Path(self.db_path).stat().st_mtime)
             age_days = (datetime.now() - mtime).days
             if age_days < refresh_days:

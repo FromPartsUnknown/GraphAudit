@@ -25,7 +25,6 @@ def main():
         default=False,
         help="Peform MS Graph collection"
     )
-
     parser.add_argument(
         "--debug-count",
         type=int,
@@ -52,7 +51,6 @@ def main():
             if prompt == 'y':
                  asyncio.run(refresh(graph_data, args.debug_count))
                  return
-
 
         detections = DetectionFactory(
             graph_data, 
