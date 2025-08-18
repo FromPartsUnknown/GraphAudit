@@ -1,0 +1,45 @@
+name: Detection 03
+description: | 
+  Find third-party applications not hosted in the home tenant. Microsoft-owned applications
+  (first-party) are excluded from the results. Only applications that have been assigned
+  permissions to resources or are members of directory roles are included. If an attacker
+  compromises a client credential belonging to one of these third-party applications in an
+  external tenant, they could authenticate as the application and assume its permissions. 
+
+query: |
+  SELECT DISTINCT sp_id
+  FROM (
+      SELECT a.principalId AS sp_id
+      FROM (
+          SELECT principalId, resourceDisplayName
+          FROM app_role_assignments
+          UNION ALL
+          SELECT principalId, resourceDisplayName
+          FROM app_role_assigned_to
+      ) a
+      INNER JOIN service_principals sp 
+          ON lower(sp.id) = lower(a.principalId)
+      INNER JOIN applications app
+          ON lower(app.appId) = lower(sp.appId)
+      WHERE 
+          lower(a.resourceDisplayName) = lower('Microsoft Graph')
+          AND sp.servicePrincipalType = 'Application'
+          AND sp.accountEnabled = 1
+          AND (
+              json_array_length(sp.passwordCredentials) > 0
+              OR json_array_length(sp.keyCredentials) > 0
+              OR json_array_length(app.passwordCredentials) > 0
+              OR json_array_length(app.keyCredentials) > 0
+          )
+  );
+
+output:
+  - type: table
+    title: "3rd Party App Running in Tenant (excluding Microsoft)"
+    columns:
+      - 
+        - data_view: "service_principal"
+        -
+      - 
+        - data_view: "service_principal.appRoleImports[]"
+        - data_view: "service_principal.member_of[]"

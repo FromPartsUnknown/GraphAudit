@@ -2,7 +2,7 @@ name: Detection 01
 description:  |
   Find Service Principals (SPs) that have a role assignment to the MS Graph Resource.
   The SPs must be of type ‘Application’, be enabled, and have at least one credential 
-  (password or key) configured to support client credential authentication flow.
+  (password or key) configured to support client credential flow.
 
 query: |
   SELECT DISTINCT sp_id

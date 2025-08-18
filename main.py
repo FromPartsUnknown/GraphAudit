@@ -31,7 +31,6 @@ def main():
         default=0,
         help="Number of ServicePrincipal enteries to fetch"
     )
-
     parser.add_argument(
         "--output-file", 
         type=str,
@@ -67,8 +66,8 @@ def main():
                 
 
 async def refresh(graph_data, debug=0):
-        async with GraphCrawler(graph_data, debug=debug) as crawler:
-            await crawler.fetch()
+    async with GraphCrawler(graph_data, debug=debug) as crawler:
+        await crawler.fetch()
 
 
 if __name__ == "__main__":

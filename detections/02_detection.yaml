@@ -8,14 +8,18 @@ query: |
   SELECT DISTINCT sp.id AS sp_id
   FROM sp_member_of smo
   JOIN service_principals sp
-    ON sp.id = smo.service_principal_id
-    WHERE smo."@odata.type" = '#microsoft.graph.directoryRole'
-      AND sp.servicePrincipalType = 'Application'
-      AND sp.accountEnabled = 1
-      AND (
-        json_array_length(sp.passwordCredentials) > 0
-        OR json_array_length(sp.keyCredentials) > 0
-      );
+      ON sp.id = smo.service_principal_id
+  JOIN applications app
+      ON lower(app.appId) = lower(sp.appId)
+  WHERE smo."@odata.type" = '#microsoft.graph.directoryRole'
+    AND sp.servicePrincipalType = 'Application'
+    AND sp.accountEnabled = 1
+    AND (
+      json_array_length(sp.passwordCredentials) > 0
+      OR json_array_length(sp.keyCredentials) > 0
+      OR json_array_length(app.passwordCredentials) > 0
+      OR json_array_length(app.keyCredentials) > 0
+    );
   
 output:
   - type: table
