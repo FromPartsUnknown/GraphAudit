@@ -2,6 +2,7 @@ import argparse
 import asyncio
 from graphdata import GraphData
 from graphcrawl import GraphCrawler
+from graphdiff import GraphDiff
 from detections import DetectionFactory
 
 
@@ -26,10 +27,21 @@ def main():
         help="Peform MS Graph collection"
     )
     parser.add_argument(
+        "--auth-cache",
+        action="store_true",
+        default=False
+    )
+    parser.add_argument(
+        "--diff",
+        action="store_true",
+        default=False,
+        help="Peform diff"
+    )
+    parser.add_argument(
         "--debug-count",
         type=int,
         default=0,
-        help="Number of ServicePrincipal enteries to fetch"
+        help="Number of Service Principal entries to fetch"
     )
     parser.add_argument(
         "--output-file", 
@@ -39,16 +51,28 @@ def main():
 
     try:
         args = parser.parse_args()
+       
+        # XXX Testing
+        if args.diff:
+            graph_diff = GraphDiff()
+            graph_diff.make_hash('service_principals', ["passwordCredentials", "keyCredentials"])
 
+            graph_data = GraphData(args.db_path, graph_diff)
+            asyncio.run(refresh(graph_data, args.debug_count, args.auth_cache))
+           
+            print(f"result: {graph_diff.results('service_principals')}")
+            return
+        
+        
         graph_data = GraphData(args.db_path)
 
         if args.collect:
-             asyncio.run(refresh(graph_data, args.debug_count))
+             asyncio.run(refresh(graph_data, args.debug_count, args.auth_cache))
              return
         elif graph_data.fresh() == False:
             prompt = input(f"Cache database missing or older than 7 days. Perform refresh (y/n): ").strip().lower()
             if prompt == 'y':
-                 asyncio.run(refresh(graph_data, args.debug_count))
+                 asyncio.run(refresh(graph_data, args.debug_count, args.auth_cache))
                  return
 
         detections = DetectionFactory(
@@ -65,8 +89,8 @@ def main():
         print(f"[-] Fatal Error (see errors.log): {str(e)}")
                 
 
-async def refresh(graph_data, debug=0):
-    async with GraphCrawler(graph_data, debug=debug) as crawler:
+async def refresh(graph_data, debug=0, use_cache=False):
+    async with GraphCrawler(graph_data, debug=debug, use_cache=use_cache) as crawler:
         await crawler.fetch()
 
 

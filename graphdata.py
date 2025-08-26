@@ -1,11 +1,11 @@
 import json
 import duckdb
-from pathlib import Path
 import sqlite3
-import pandas as pd
-from log import log_init
 import logging
+import pandas as pd
+from pathlib import Path
 from datetime import datetime
+from log import log_init
 
 from kiota_serialization_json.json_serialization_writer_factory import JsonSerializationWriterFactory
 from kiota_abstractions.serialization import Parsable
@@ -19,10 +19,12 @@ class GraphException(Exception):
         super().__init__(message, *args, **kwargs)
 
 class GraphData():
-    def __init__(self, db_path='graph_data.db'):
+    def __init__(self, db_path='graph_data.db', graph_diff=None):
         self.tables  = {}
+        self._hash_registry = {}
         self._logger = log_init(__name__, level=logging.ERROR)
-        
+        self._graph_diff = graph_diff
+
         self._db_path = db_path
         self.db = duckdb.connect(':memory:')
         self._load_from_disk(self._db_path)
@@ -39,6 +41,7 @@ class GraphData():
             if age_days < refresh_days:
                 return True
         return False
+
 
 
     def _load_from_disk(self, db_path):
@@ -65,19 +68,24 @@ class GraphData():
                 self.db.execute("INSTALL sqlite; LOAD sqlite;")
                 self.db.execute("SET sqlite_all_varchar=true")
                 for table in tables:
-                    self.db.execute(
-                        f"CREATE TABLE IF NOT EXISTS {table} AS "
-                        f"SELECT * FROM sqlite_scan('{db_path}', '{table}')"
-                    )
+                    # self.db.execute(
+                    #     f"CREATE TABLE IF NOT EXISTS {table} AS "
+                    #     f"SELECT * FROM sqlite_scan('{db_path}', '{table}')"
+                    # )
+                    self.db.execute(f"CREATE TABLE IF NOT EXISTS {table}")
                     self.tables[table] = self.db.table(table)
                 self._logger.info(f"[+] Loaded sqlite database: {db_path} into memory")
                     
             elif b'DUCK' in header[:16]:
-                self.db.execute(f"ATTACH DATABASE '{db_path}'")
-                self.db.execute(f"SET search_path = graph_data")
+                # Temporarily attach the disk database
+                self._logger.info(f"[+] Attached duckdb database: {db_path}")
+                self.db.execute(f"ATTACH DATABASE '{db_path}' AS disk_db")
                 for table in tables:
+                    self.db.execute(f"CREATE TABLE {table} AS SELECT * FROM disk_db.{table}")
                     self.tables[table] = self.db.table(table)
-                self._logger.info(f"[+] Loaded duckdb database: {db_path}  into memory")
+                # Detach the disk database since we've copied the data    
+                self.db.execute("DETACH DATABASE disk_db")
+                
             else:
                 raise GraphException(f"Could not determine file format for {db_path}")
 
@@ -94,14 +102,17 @@ class GraphData():
         ):
 
         try:
-            self.db.execute(f"DROP TABLE IF EXISTS {name}")
-            
+           # Perform diff before loading new data
+            if self._graph_diff and name in self.tables:
+                cache_df = self.tables[name].to_df()
+                self._graph_diff.compare(name, cache_df, df)
+
             if df.empty:
                 self._logger.warning(f"[*] Empty dataframe for table {name}.")
                 return
             
-            self.db.register(name, df)
-            self.db.execute(f"CREATE TABLE {name} AS SELECT * FROM {name}")
+            # Replace the in-memory table with new DataFrame data
+            self.db.execute(f"CREATE OR REPLACE TABLE {name} AS SELECT * FROM df")
             self.tables[name] = self.db.table(name)
             
             if persist:
@@ -120,12 +131,16 @@ class GraphData():
     def _persist_to_disk(self, table_name):
         try:
             
-            self.db.execute(f"ATTACH '{self.db_path}' AS graph_db")
-            self.db.execute(f"DROP TABLE IF EXISTS graph_db.{table_name}")
-            self.db.execute(f"CREATE TABLE graph_db.{table_name} AS SELECT * FROM {table_name}")
-            self.db.execute("DETACH graph_db")
-            
-            #self._logger.info(f"[*] Table {table_name} flushed to to disk: {self.db_path}")
+            self._logger.info(f"[*] Attaching {table_name}")
+            self.db.execute(f"ATTACH DATABASE '{self._db_path}' AS disk_db")
+
+            # Replace the table on disk with the in-memory version
+            self.db.execute(f"CREATE OR REPLACE TABLE disk_db.{table_name} AS SELECT * FROM {table_name}")
+
+             # Detach the disk database
+            self.db.execute("DETACH DATABASE disk_db")
+
+            self._logger.info(f"[*] Table {table_name} persisted to disk: {self._db_path}")
             
         except Exception as e:
             raise GraphException(f"Error saving table {table_name} to disk: {self.db_path} Error: {str(e)}") from e
@@ -150,7 +165,6 @@ class GraphData():
             # XXX Handle missing tables. Need to fix with proper schema. 
             if "does not exist" in str(e):
                 self._logger.info(f"[-] Query returned empty result due to missing table")
-                #self._logger.info(f"[-] Query returned empty result due to missing table: {e}")
                 if output_format == 'df':
                     return pd.DataFrame()
                 elif output_format == 'list':
@@ -341,36 +355,11 @@ class GraphData():
         return result
     
     
-    def _convert_to_json_string(self, value):
-        if isinstance(value, (list, dict)):
-            try:
-                return json.dumps(value)
-            except TypeError:
-                return str(value)
-        return value
-
-
-    def _jaysonify_embedded_strings(self, obj):
-        if isinstance(obj, dict):
-            for key, value in obj.items():
-                if isinstance(value, str):
-                    try:
-                        obj[key] = json.loads(value)
-                    except json.JSONDecodeError:
-                        pass
-        elif isinstance(obj, list):
-            for idx, value in enumerate(obj):
-                if isinstance(value, str):
-                    try:
-                        obj[idx] = json.loads(value)
-                    except json.JSONDecodeError:
-                        pass
-        return obj
-
-
     def _kiota_process_nested(self, obj):
         if isinstance(obj, dict):
             return {k: self.kiota_to_json(v) for k, v in obj.items()}
         elif isinstance(obj, list):
             return [self.kiota_to_json(item) for item in obj]
         return self.kiota_to_json(obj)
+    
+    

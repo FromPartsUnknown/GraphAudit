@@ -31,7 +31,7 @@ class GraphException(Exception):
         super().__init__(message, *args, **kwargs)
 
 class GraphCrawler:
-    def __init__(self, graph_data, debug = 0, batch_size = 250):
+    def __init__(self, graph_data, debug = 0, batch_size = 250, use_cache = False):
         
         self._logger       = log_init(__name__)
         self._graph_data   = graph_data
@@ -39,9 +39,11 @@ class GraphCrawler:
         self._batch_size   = batch_size
         self._graph_client = None
         self._semaphore    = asyncio.Semaphore(5)
+        self._use_cache    = use_cache
         
     async def __aenter__(self):
-        await self._authenticate()
+        print(f"Use cache: {self._use_cache}")
+        await self._authenticate(use_cache=self._use_cache)
         return self
         
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -59,9 +61,7 @@ class GraphCrawler:
     async def _authenticate(self, client_id=CLIENT_ID, use_cache=False):
         try:
             credential = None
-            
             if use_cache:
-                # Caching enabled
                 cache_path = os.path.expanduser(".token_cache")
                 auth_record_path = os.path.expanduser(".auth_record_cache")
             
@@ -93,7 +93,6 @@ class GraphCrawler:
                     with open(auth_record_path, 'w') as auth_out:
                         auth_out.write(record_json)
             else:
-                # No caching - create fresh credential each time
                 credential = InteractiveBrowserCredential(
                     client_id=client_id
                 )
@@ -254,7 +253,7 @@ class GraphCrawler:
                     tasks = []
                     batch_counter = 0
                     
-                    # Small delay between batches
+                    # Delay between batches
                     await asyncio.sleep(0.5)
                 
                 if self._debug and counter >= self._debug:
@@ -323,7 +322,7 @@ class GraphCrawler:
             for i, result in enumerate(results):
                 if isinstance(result, Exception):
                     self._logger.error(f"Error fetching subresource {i} for SP {sp_id}: {result}")
-                    processed_results.append([])  # Empty list for failed resource
+                    processed_results.append([]) 
                 else:
                     processed_results.append(result)
             
