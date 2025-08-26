@@ -209,3 +209,4 @@ __marimo__/
 old/
 *.sqlite
 errors.log
+.DS_Store
