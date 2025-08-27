@@ -1,7 +1,7 @@
 import json
 import hashlib
 import logging
-from log import log_init
+from .log import log_init
 
 class GraphException(Exception):
     def __init__(self, message, *args, **kwargs):

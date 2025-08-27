@@ -4,8 +4,8 @@ from rich.table import Table
 from rich.panel import Panel
 from rich.align import Align
 from rich import print_json
-from config import ConfigOptions
-from log import log_init
+from .config import ConfigOptions
+from .log import log_init
 import jmespath
 import json
 
@@ -13,7 +13,7 @@ import json
 class ScreenRender:
     def __init__(self):
         self.console = Console()
-        self.config  = ConfigOptions('render_config.yaml')
+        self.config  = ConfigOptions('config/render_config.yaml')
         self._logger = log_init(__name__)
 
     def _render_data_view(self, path, parent_obj):

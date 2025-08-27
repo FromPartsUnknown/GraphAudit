@@ -5,7 +5,7 @@ import logging
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
-from log import log_init
+from .log import log_init
 
 from kiota_serialization_json.json_serialization_writer_factory import JsonSerializationWriterFactory
 from kiota_abstractions.serialization import Parsable

@@ -1,9 +1,8 @@
 [project]
-name = "AppAudit"
+name = "graphaudit"
 version = "0.0.1"
-description = "A tool to audit m365 Service Principals."
+description = "Microsoft Graph audit and analysis tool"
 readme = "README.md"
-license = {file = "LICENSE"}
 requires-python = ">=3.7"
 dependencies = [
     "pandas",
@@ -13,11 +12,13 @@ dependencies = [
     "PyYAML",
     "jmespath"
 ]
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: GNU Affero General Public License v3",
-    "Operating System :: OS Independent",
-]
+
+[project.scripts]
+graphaudit = "GraphAudit.main:main" 
+
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

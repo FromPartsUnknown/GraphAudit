@@ -1,9 +1,11 @@
+#!/usr/bin/env python3
+
 import argparse
 import asyncio
-from graphdata import GraphData
-from graphcrawl import GraphCrawler
-from graphdiff import GraphDiff
-from detections import DetectionFactory
+from .graphdata import GraphData
+from .graphcrawl import GraphCrawler
+from .graphdiff import GraphDiff
+from .detections import DetectionFactory
 
 
 def main():

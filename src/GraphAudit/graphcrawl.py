@@ -1,6 +1,6 @@
 import os
 import asyncio
-from graphdata import GraphData
+from .graphdata import GraphData
 from msgraph import GraphServiceClient
 from azure.identity import InteractiveBrowserCredential, TokenCachePersistenceOptions, AuthenticationRecord
 from kiota_abstractions.base_request_configuration import RequestConfiguration
@@ -13,7 +13,7 @@ from msgraph.generated.service_principals.item.oauth2_permission_grants.oauth2_p
 from msgraph.generated.service_principals.item.service_principal_item_request_builder import ServicePrincipalItemRequestBuilder
 from msgraph.generated.service_principals.item.member_of.member_of_request_builder import MemberOfRequestBuilder
 import logging
-from log import log_init
+from .log import log_init
 import pandas as pd
 import httpx
 

@@ -1,6 +1,6 @@
-from render import ScreenRender
+from .render import ScreenRender
 from pathlib import Path
-from log import log_init
+from .log import log_init
 import yaml
 
 class DetectionFactory():
