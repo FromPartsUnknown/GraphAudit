@@ -8,7 +8,7 @@ GraphAudit is a security auditing and monitoring tool for Microsoft Entra ID (fo
 Key use cases include detecting Service Principals with dangerous permissions (e.g., to Microsoft Graph) and third-party applications with elevated access. GraphAudit also includes a diff mode to monitor changes to Service Principal credentials over time, acting like a tripwire for unauthorised modifications.
 
 <p align="center">
-<img src="https://drive.google.com/uc?export=view&id=1RRd2_dUUB-Iz5QVbBe2DNHcbw6dt0g0J"/>
+<img src="https://i.imgur.com/EpM8A3j.png"/>
 </p>
 
 ## ✨ Features
