@@ -43,7 +43,7 @@ service_principal:
 
   application:
     TITLE: "Application Info"
-    COMMENT: enableAccessTokenIssuance specifies whether Azure AD can issue access tokens targeted (scoped) to this application. Redirect URIs define the endpoint where the application receives the authorization code during confidential client authorization code flow.
+    #COMMENT: enableAccessTokenIssuance specifies whether Azure AD can issue access tokens targeted (scoped) to this application. Redirect URIs define the endpoint where the application receives the authorization code during confidential client authorization code flow.
     displayName: "Display Name"
     appId: "Application ID"
     publicClient: 
@@ -60,7 +60,7 @@ service_principal:
       TITLE: Web Info
       EXPAND: Yes
       homePageUrl: "Home Page"
-      implicitGrantSettings: "Grant Settings"
+      #implicitGrantSettings: "Grant Settings"
       redirectUris: Redirect URIs
     servicePrincipalLockConfiguration: "SP Lock"
     isFallbackPublicClient: Fallback PublicClient
