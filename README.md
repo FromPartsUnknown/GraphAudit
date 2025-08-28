@@ -158,7 +158,7 @@ GraphData performs automatic enrichment of Service Principal objects:
 
 ### Customising Output
 
-The visual presentation of detection results in the terminal—such as titles, comments, and property names—is controlled by the config/render_config.yaml file. You can edit this file to change how data is displayed without altering the detection logic.
+The visual presentation of detection results in the terminal, such as titles, comments, and property names, is controlled by the `config/render_config.yaml` file. You can edit this file to change how this data is displayed.
 
 ### Built-in Detections
 
@@ -166,5 +166,5 @@ See the detections directory:
 
 - **Graph Permissions**: Finds enabled SPs with Graph app roles and client credentials.
 - **Directory Roles**: Identifies SPs with membership to a directory role and client credentials. 
-- **Third-Party Apps**: Detects external applications with permissions or app role assignments.
+- **Third-Party Apps**: Detects external applications with directory membership or app role assignments.
 
