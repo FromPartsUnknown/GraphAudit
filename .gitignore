@@ -210,3 +210,6 @@ old/
 *.sqlite
 errors.log
 .DS_Store
+misc/
+diff_results.txt
+db/
