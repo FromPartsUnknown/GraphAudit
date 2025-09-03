@@ -54,18 +54,14 @@ def main():
     try:
         args = parser.parse_args()
        
-        # XXX Testing
+        # Currently experimental
         if args.diff:
             graph_diff = GraphDiff()
             graph_diff.make_hash('service_principals', ["passwordCredentials", "keyCredentials"])
-
             graph_data = GraphData(args.db_path, graph_diff)
             asyncio.run(refresh(graph_data, args.debug_count, args.auth_cache))
-            
             graph_diff.log_results()
-
             return
-        
         
         graph_data = GraphData(args.db_path)
 
