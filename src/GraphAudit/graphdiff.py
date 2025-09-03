@@ -1,6 +1,7 @@
 import json
 import hashlib
 import logging
+from pathlib import Path
 from .log import log_init
 
 class GraphException(Exception):
@@ -14,25 +15,71 @@ class GraphDiff():
     def __init__(self):
         self._hash_registry = {}
         self._hash_results  = {}
+        self._fields        = {}
         self._logger = log_init(__name__, level=logging.ERROR)
+      
+    
 
+    def log_results(self, log_file='diff_results.txt'):
+        try:
+            with open(log_file, 'a') as fp:
+                for name in self._hash_results:
+                    self._write_result(name, fp)
+        except Exception as e:
+            raise GraphException(f"[-] Error logging result: {e}")
 
+    def _write_result(self, name, fp):
+        result = self._hash_results[name]
+        fp.write(f"Type: {name}\n")
+        fp.write(f"Modified SPs with Client Credentials:\n")
+        mod_result = result['mod']
+        for _, row in mod_result.iterrows():
+            creds = row.get('keyCredentials')
+            # Check for meaningful credentials (not empty string, not '[]', not empty list)
+            if creds and creds not in ['[]', '{}', 'null', 'None'] and len(str(creds).strip()) > 2:
+                fp.write(f"ID: {row['id']}, Name: {row['displayName']}\n\tCredentials: {row['keyCredentials']}\n")
+        
+        fp.write(f"New SPs with Client Credentials:\n")
+        new_result = result['new']
+        for _, row in new_result.iterrows():
+            creds = row.get('keyCredentials')
+            # Check for meaningful credentials (not empty string, not '[]', not empty list)
+            if creds and creds not in ['[]', '{}', 'null', 'None'] and len(str(creds).strip()) > 2:
+                fp.write(f"ID: {row['id']}, Name: {row['displayName']}\n\tCredentials: {row['keyCredentials']}\n")
+
+        
     def make_hash(self, name, fields):
         self._hash_registry[name] = self._hash_fields(fields)
+        self._fields[name] = fields
 
 
     def _hash_fields(self, fields):
+        # Capture the method reference before creating the lambda
+        is_obj_value = self._is_obj_value
+        
         return lambda obj: (
-            None if not any(f in obj for f in fields) else
+            None if not any(f in obj and is_obj_value(obj.get(f)) for f in fields) else
             hashlib.sha1(
                 json.dumps(
-                    {f: obj.get(f) for f in fields},
+                    {f: obj.get(f) for f in fields if f in obj and is_obj_value(obj.get(f))},
                     sort_keys=True
                 ).encode()
             ).hexdigest()
         )
-    
 
+
+    def _is_obj_value(self, value):
+        if value is None:
+            return False
+        if isinstance(value, str):
+            # Handle string representations of empty collections
+            if len(value) == 0 or value in ['[]', '{}', 'null', 'None']:
+                return False
+        elif isinstance(value, (list, dict)) and len(value) == 0:
+            return False
+        return True
+        
+    
     def results(self, name):
         return self._hash_results[name]
     
@@ -61,6 +108,7 @@ class GraphDiff():
         # Find different types of changes
         cmn_ids = df.index.intersection(cache_df.index)
         new_ids = df.index.difference(cache_df.index)
+        new_ids_with_hash = new_ids[df.loc[new_ids]["hash"].notnull()]
         del_ids = cache_df.index.difference(df.index)
 
         # Compare only rows with common IDs for changes
@@ -76,10 +124,9 @@ class GraphDiff():
         else:
             mod_ids = df.index[[]] 
 
-        result['new']   = new_ids.tolist()
-        result['del']   = del_ids.tolist()
-        result['mod']   = mod_ids.tolist()
-        result['cache'] = cache_df.loc[mod_ids].reset_index()
-
+        result['new'] = df.loc[new_ids_with_hash].reset_index()
+        result['del'] = cache_df.loc[del_ids].reset_index()
+        result['mod'] = cache_df.loc[mod_ids].reset_index()
         self._hash_results[name] = result
+
         return result 

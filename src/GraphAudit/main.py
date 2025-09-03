@@ -61,8 +61,9 @@ def main():
 
             graph_data = GraphData(args.db_path, graph_diff)
             asyncio.run(refresh(graph_data, args.debug_count, args.auth_cache))
-           
-            print(f"result: {graph_diff.results('service_principals')}")
+            
+            graph_diff.log_results()
+
             return
         
         

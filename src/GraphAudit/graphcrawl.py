@@ -42,7 +42,7 @@ class GraphCrawler:
         self._use_cache    = use_cache
         
     async def __aenter__(self):
-        print(f"Use cache: {self._use_cache}")
+        #print(f"Use cache: {self._use_cache}")
         await self._authenticate(use_cache=self._use_cache)
         return self
         

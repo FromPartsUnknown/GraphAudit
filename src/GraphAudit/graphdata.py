@@ -68,11 +68,11 @@ class GraphData():
                 self.db.execute("INSTALL sqlite; LOAD sqlite;")
                 self.db.execute("SET sqlite_all_varchar=true")
                 for table in tables:
-                    # self.db.execute(
-                    #     f"CREATE TABLE IF NOT EXISTS {table} AS "
-                    #     f"SELECT * FROM sqlite_scan('{db_path}', '{table}')"
-                    # )
-                    self.db.execute(f"CREATE TABLE IF NOT EXISTS {table}")
+                    self.db.execute(
+                         f"CREATE TABLE IF NOT EXISTS {table} AS "
+                         f"SELECT * FROM sqlite_scan('{db_path}', '{table}')"
+                    )
+                    
                     self.tables[table] = self.db.table(table)
                 self._logger.info(f"[+] Loaded sqlite database: {db_path} into memory")
                     
